@@ -1,3 +1,9 @@
+import {
+  computersIcon,
+  searchIcon,
+  settingsIcon,
+  singIcon,
+} from "./assets/icons";
 import type {
   AppleTvLauncherConfig,
   HomeAssistant,
@@ -46,20 +52,23 @@ const BUILTIN_ARTWORK: Record<string, BuiltinArtwork> = {
   "com.apple.TVAppStore": {
     url: "https://developer.apple.com/assets/elements/icons/app-store/app-store-128x128_2x.png",
   },
+  // Bundled 240x240 icons from tvOS 26.6, inlined by scripts/generate-icons.mjs.
+  // Previously these pointed at help.apple.com documentation crops, which were
+  // only 120x80/102x60 and unversioned against any tvOS release.
   "com.apple.TVSearch": {
-    url: "https://help.apple.com/assets/6A440A7A736300C05C08253A/6A440A87867E8694C70A98B2/en_US/08f09cdac4972f4b3daf8d8912eea958.png",
+    url: searchIcon,
     unframed: false,
   },
   "com.apple.TVSettings": {
-    url: "https://help.apple.com/assets/6A440A7A736300C05C08253A/6A440A87867E8694C70A98B2/en_US/53286707fd1ad5fb25d30e83bc67b76d.png",
+    url: settingsIcon,
     unframed: false,
   },
   "com.apple.Sing": {
-    url: "https://help.apple.com/assets/6A440A7A736300C05C08253A/6A440A87867E8694C70A98B2/en_US/e6bf83bb2c9562d02282b6dc567356c6.png",
+    url: singIcon,
     unframed: false,
   },
   "com.apple.TVHomeSharing": {
-    url: "https://help.apple.com/assets/6A440A7A736300C05C08253A/6A440A87867E8694C70A98B2/en_US/7408de6d13cf09241848fed559d8b9aa.png",
+    url: computersIcon,
     unframed: false,
   },
 };
