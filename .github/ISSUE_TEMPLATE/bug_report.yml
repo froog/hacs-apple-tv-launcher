@@ -1,0 +1,48 @@
+name: Bug report
+description: Report a reproducible Apple TV Launcher problem.
+title: "[Bug]: "
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: Thanks for helping improve Apple TV Launcher.
+  - type: input
+    id: home_assistant_version
+    attributes:
+      label: Home Assistant version
+      placeholder: 2026.8.0
+    validations:
+      required: true
+  - type: input
+    id: launcher_version
+    attributes:
+      label: Apple TV Launcher version
+      placeholder: 0.1.0
+    validations:
+      required: true
+  - type: input
+    id: apple_tv
+    attributes:
+      label: Apple TV model and tvOS version
+      placeholder: Apple TV 4K (3rd generation), tvOS 26.6
+    validations:
+      required: true
+  - type: textarea
+    id: configuration
+    attributes:
+      label: Card configuration
+      render: yaml
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: What happened?
+      description: Include exact steps, expected behavior, and actual behavior.
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant logs
+      render: text

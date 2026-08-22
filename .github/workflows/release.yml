@@ -1,0 +1,47 @@
+name: Release
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - name: Verify release version
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          tag = os.environ["RELEASE_TAG"].removeprefix("v")
+          manifest = json.loads(
+              Path("custom_components/apple_tv_launcher/manifest.json").read_text()
+          )
+          package = json.loads(Path("package.json").read_text())
+          if manifest["version"] != tag or package["version"] != tag:
+              raise SystemExit(
+                  f"Release {tag} does not match manifest/package versions "
+                  f"{manifest['version']}/{package['version']}"
+              )
+          PY
+      - name: Build HACS archive
+        run: |
+          cd custom_components/apple_tv_launcher
+          zip -r ../../apple_tv_launcher.zip .
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: apple_tv_launcher.zip

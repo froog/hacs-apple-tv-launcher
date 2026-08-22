@@ -1,0 +1,13 @@
+{
+  "title": "Apple TV Launcher",
+  "config": {
+    "step": {
+      "user": {
+        "description": "Add the Apple TV Launcher dashboard card and persistent artwork cache."
+      }
+    },
+    "abort": {
+      "already_configured": "Apple TV Launcher is already configured."
+    }
+  }
+}

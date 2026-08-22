@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-label="Apple TV Launcher">
+  <defs>
+    <linearGradient id="background" x1="32" y1="24" x2="224" y2="232" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#44315f"/>
+      <stop offset="0.52" stop-color="#151923"/>
+      <stop offset="1" stop-color="#07080c"/>
+    </linearGradient>
+    <linearGradient id="screen" x1="54" y1="62" x2="202" y2="186" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#343843"/>
+      <stop offset="1" stop-color="#101116"/>
+    </linearGradient>
+  </defs>
+  <rect x="8" y="8" width="240" height="240" rx="58" fill="url(#background)"/>
+  <rect x="39" y="48" width="178" height="142" rx="28" fill="url(#screen)" stroke="#ffffff" stroke-opacity="0.24" stroke-width="4"/>
+  <rect x="62" y="70" width="56" height="44" rx="12" fill="#7657d8"/>
+  <rect x="138" y="70" width="56" height="44" rx="12" fill="#1fa4aa"/>
+  <rect x="62" y="126" width="56" height="42" rx="12" fill="#e24b6d"/>
+  <rect x="138" y="126" width="56" height="42" rx="12" fill="#e0ae36"/>
+  <path d="M104 216h48" stroke="#ffffff" stroke-opacity="0.72" stroke-width="9" stroke-linecap="round"/>
+</svg>
+

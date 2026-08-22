@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Home Assistant Apple TV integration help
+    url: https://www.home-assistant.io/integrations/apple_tv/
+    about: Use Home Assistant support for pairing, connection, and core Apple TV issues.
