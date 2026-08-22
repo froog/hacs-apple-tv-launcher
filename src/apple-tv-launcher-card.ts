@@ -536,7 +536,7 @@ if (!window.customCards.some((card) => card.type === CARD_TAG)) {
     description:
       "A tvOS-style launcher for apps exposed by Home Assistant's Apple TV integration.",
     preview: true,
-    documentationURL: "https://github.com/froog/hacs-apple-launcher",
+    documentationURL: "https://github.com/froog/hacs-apple-tv-launcher",
   });
 }
 
