@@ -18,6 +18,7 @@ import type {
   HassEntity,
   HomeAssistant,
   LauncherApp,
+  LovelaceGridOptions,
   RawAppleTvLauncherConfig,
 } from "./types";
 
@@ -214,6 +215,17 @@ export class AppleTvLauncherCard extends LitElement {
   getCardSize(): number {
     const columns = this._config?.columns ?? DEFAULTS.columns;
     return Math.max(2, Math.ceil((this._apps.length || columns) / columns) * 2);
+  }
+
+  getGridOptions(): LovelaceGridOptions {
+    // Height is content-driven: tiles are square, so it follows from the width
+    // and the number of app rows. Pinning a row count would clip the grid or
+    // leave dead space, hence "auto" rather than a number.
+    return {
+      columns: "full",
+      rows: "auto",
+      min_columns: 6,
+    };
   }
 
   private get _entityState(): HassEntity | undefined {

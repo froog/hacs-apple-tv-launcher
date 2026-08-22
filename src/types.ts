@@ -41,6 +41,20 @@ export interface RawAppleTvLauncherConfig extends Partial<AppleTvLauncherConfig>
   entity: string;
 }
 
+/**
+ * Sizing contract for the sections view grid, mirroring Home Assistant's
+ * LovelaceGridOptions. Without it the card editor's Layout tab reports that the
+ * card does not support resizing.
+ */
+export interface LovelaceGridOptions {
+  columns?: number | "full";
+  rows?: number | "auto";
+  min_columns?: number;
+  max_columns?: number;
+  min_rows?: number;
+  max_rows?: number;
+}
+
 export interface LauncherApp {
   name: string;
   id: string | null;

@@ -1330,6 +1330,13 @@ var ot = class extends B {
 		let e = this._config?.columns ?? Q.columns;
 		return Math.max(2, Math.ceil((this._apps.length || e) / e) * 2);
 	}
+	getGridOptions() {
+		return {
+			columns: "full",
+			rows: "auto",
+			min_columns: 6
+		};
+	}
 	get _entityState() {
 		let e = this._config?.entity;
 		return e ? this._hass?.states[e] : void 0;

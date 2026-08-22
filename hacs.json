@@ -1,6 +1,6 @@
 {
   "name": "Apple TV Launcher",
   "homeassistant": "2025.7.0",
-  "zip_release": true,
+  "zip_release": false,
   "filename": "apple_tv_launcher.zip"
 }

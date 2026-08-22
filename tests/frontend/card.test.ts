@@ -128,4 +128,16 @@ describe("AppleTvLauncherCard", () => {
       card.shadowRoot!.querySelector("[role=alert]")?.textContent,
     ).toContain("still asleep");
   });
+  it("declares grid options so the layout editor allows resizing", () => {
+    // An empty object here makes the card editor's Layout tab report that the
+    // card does not support resizing, so the contract is that it stays filled.
+    const options = new AppleTvLauncherCard().getGridOptions();
+
+    expect(Object.keys(options).length).toBeGreaterThan(0);
+    expect(options).toMatchObject({
+      columns: "full",
+      rows: "auto",
+      min_columns: 6,
+    });
+  });
 });
