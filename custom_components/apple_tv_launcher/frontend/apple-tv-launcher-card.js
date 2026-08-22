@@ -827,9 +827,9 @@ async function Ke(e, t, n) {
 //#endregion
 //#region src/config.ts
 var Q = Object.freeze({
-	columns: 5,
+	columns: 4,
 	mobile_columns: 3,
-	show_labels: !0,
+	show_labels: !1,
 	artwork_lookup: !0,
 	artwork_country: "us",
 	wake_before_launch: !0,
@@ -1162,8 +1162,13 @@ var et = o`
       animation: none;
     }
   }
-`, tt = "apple-tv-launcher-card", nt = "0.1.0", rt = (e) => new Promise((t) => window.setTimeout(t, e));
-function it(e, t) {
+`, tt = "apple-tv-launcher-card";
+function nt() {
+	let e = document.querySelector("home-assistant")?.hass?.config?.country;
+	return typeof e == "string" && /^[A-Za-z]{2}$/.test(e) ? e.toLowerCase() : Q.artwork_country;
+}
+var rt = "0.1.0", it = (e) => new Promise((t) => window.setTimeout(t, e));
+function at(e, t) {
 	return {
 		name: e,
 		id: t,
@@ -1173,10 +1178,10 @@ function it(e, t) {
 		unframedArtwork: !1
 	};
 }
-function at(e) {
+function ot(e) {
 	return e instanceof Error ? e.message : String(e);
 }
-var ot = class extends B {
+var st = class extends B {
 	constructor(...e) {
 		super(...e), this._apps = [], this._loading = !0, this._launching = null, this._powering = !1, this._error = "", this._loadGeneration = 0, this._sourceSignature = "", this._discoveryConfigSignature = "";
 	}
@@ -1261,7 +1266,7 @@ var ot = class extends B {
 						},
 						{
 							name: "artwork_country",
-							default: Q.artwork_country,
+							default: nt(),
 							selector: { text: { type: "text" } }
 						},
 						{
@@ -1357,9 +1362,9 @@ var ot = class extends B {
 				entity_id: n.entity,
 				media_content_type: "apps",
 				media_content_id: "apps"
-			})).children ?? []).filter((e) => e?.title).map((e) => it(String(e.title), e.media_content_id ? String(e.media_content_id) : null));
+			})).children ?? []).filter((e) => e?.title).map((e) => at(String(e.title), e.media_content_id ? String(e.media_content_id) : null));
 		} catch {
-			r = (this._entityState?.attributes.source_list ?? []).map((e) => it(String(e), null));
+			r = (this._entityState?.attributes.source_list ?? []).map((e) => at(String(e), null));
 		}
 		if (e !== this._loadGeneration) return;
 		r = Ze(r, n), this._apps = r, this._loading = !1, this.requestUpdate();
@@ -1371,7 +1376,7 @@ var ot = class extends B {
 		if (this._launching || !t || !n) return;
 		this._launching = e.name, this._error = "", this.requestUpdate();
 		let r = async () => {
-			n.wake_before_launch && (await t.callService("media_player", "turn_on", {}, { entity_id: n.entity }), n.wake_delay && await rt(n.wake_delay));
+			n.wake_before_launch && (await t.callService("media_player", "turn_on", {}, { entity_id: n.entity }), n.wake_delay && await it(n.wake_delay));
 		}, i = () => t.callService("media_player", "select_source", { source: e.name }, { entity_id: n.entity });
 		try {
 			await r();
@@ -1382,7 +1387,7 @@ var ot = class extends B {
 				await r(), await i();
 			}
 		} catch (t) {
-			this._notify(`Could not launch ${e.name}: ${at(t)}`);
+			this._notify(`Could not launch ${e.name}: ${ot(t)}`);
 		} finally {
 			this._launching = null, this.requestUpdate();
 		}
@@ -1395,7 +1400,7 @@ var ot = class extends B {
 		try {
 			await e.callService("media_player", n ? "turn_on" : "turn_off", {}, { entity_id: t.entity });
 		} catch (e) {
-			this._notify(`Could not turn Apple TV ${n ? "on" : "off"}: ${at(e)}`);
+			this._notify(`Could not turn Apple TV ${n ? "on" : "off"}: ${ot(e)}`);
 		} finally {
 			this._powering = !1, this.requestUpdate();
 		}
@@ -1521,14 +1526,14 @@ var ot = class extends B {
     `;
 	}
 };
-customElements.get("apple-tv-launcher-card") || customElements.define(tt, ot), window.customCards = window.customCards ?? [], window.customCards.some((e) => e.type === "apple-tv-launcher-card") || window.customCards.push({
+customElements.get("apple-tv-launcher-card") || customElements.define(tt, st), window.customCards = window.customCards ?? [], window.customCards.some((e) => e.type === "apple-tv-launcher-card") || window.customCards.push({
 	type: tt,
 	name: "Apple TV Launcher Card",
 	description: "A tvOS-style launcher for apps exposed by Home Assistant's Apple TV integration.",
 	preview: !0,
-	documentationURL: "https://github.com/froog/hacs-apple-launcher"
-}), console.info(`%c APPLE TV LAUNCHER %c ${nt} `, "color:#fff;background:#1c1c20;font-weight:700;padding:3px 6px;border-radius:5px 0 0 5px", "color:#111;background:#f5f5f7;padding:3px 6px;border-radius:0 5px 5px 0");
+	documentationURL: "https://github.com/froog/hacs-apple-tv-launcher"
+}), console.info(`%c APPLE TV LAUNCHER %c ${rt} `, "color:#fff;background:#1c1c20;font-weight:700;padding:3px 6px;border-radius:5px 0 0 5px", "color:#111;background:#f5f5f7;padding:3px 6px;border-radius:0 5px 5px 0");
 //#endregion
-export { ot as AppleTvLauncherCard, tt as CARD_TAG, nt as CARD_VERSION };
+export { st as AppleTvLauncherCard, tt as CARD_TAG, rt as CARD_VERSION };
 
 //# sourceMappingURL=apple-tv-launcher-card.js.map

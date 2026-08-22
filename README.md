@@ -80,7 +80,7 @@ entity: media_player.lounge_room
 title: Lounge Apple TV
 columns: 5
 mobile_columns: 3
-show_labels: true
+show_labels: false
 artwork_lookup: true
 artwork_country: nz
 wake_before_launch: true
@@ -105,9 +105,9 @@ artwork:
 | -------------------- | ----------- | ---------------------------------------------------- |
 | `entity`             | Required    | Apple TV `media_player` entity.                      |
 | `title`              | Entity name | Heading; an empty value hides the heading.           |
-| `columns`            | `5`         | Desktop icons per row, from 2–10.                    |
+| `columns`            | `4`         | Desktop icons per row, from 2–10.                    |
 | `mobile_columns`     | `3`         | Icons per row below 600 px, from 2–6.                |
-| `show_labels`        | `true`      | Show app names below icons.                          |
+| `show_labels`        | `false`     | Show app names below icons.                          |
 | `artwork_lookup`     | `true`      | Allow Apple artwork and App Store metadata requests. |
 | `artwork_country`    | `us`        | Preferred two-letter App Store storefront.           |
 | `wake_before_launch` | `true`      | Call `media_player.turn_on` before launching.        |

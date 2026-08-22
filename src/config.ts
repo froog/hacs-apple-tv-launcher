@@ -5,9 +5,9 @@ import type {
 } from "./types";
 
 export const DEFAULTS = Object.freeze({
-  columns: 5,
+  columns: 4,
   mobile_columns: 3,
-  show_labels: true,
+  show_labels: false,
   artwork_lookup: true,
   artwork_country: "us",
   wake_before_launch: true,

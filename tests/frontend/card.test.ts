@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { AppleTvLauncherCard } from "../../src/apple-tv-launcher-card";
-import type { HomeAssistant } from "../../src/types";
+import type { HomeAssistant, RawAppleTvLauncherConfig } from "../../src/types";
 
 const apps = [
   ["Netflix", "com.netflix.Netflix"],
@@ -31,12 +31,16 @@ function createHass(overrides: Partial<HomeAssistant> = {}): HomeAssistant {
   } as HomeAssistant;
 }
 
-async function mount(hass = createHass()): Promise<AppleTvLauncherCard> {
+async function mount(
+  hass = createHass(),
+  config: Partial<RawAppleTvLauncherConfig> = {},
+): Promise<AppleTvLauncherCard> {
   const card = new AppleTvLauncherCard();
   card.setConfig({
     entity: "media_player.lounge",
     artwork_lookup: false,
     wake_delay: 0,
+    ...config,
   });
   document.body.append(card);
   card.hass = hass;
@@ -69,7 +73,9 @@ describe("AppleTvLauncherCard", () => {
     const hass = createHass({
       callWS: vi.fn(async () => Promise.reject(new Error("no browse"))),
     });
-    const card = await mount(hass);
+    // Set show_labels explicitly: this asserts on labels, so it must not ride
+    // on whatever the default happens to be.
+    const card = await mount(hass, { show_labels: true });
 
     expect(
       [...card.shadowRoot!.querySelectorAll(".label")].map(
@@ -139,5 +145,34 @@ describe("AppleTvLauncherCard", () => {
       rows: "auto",
       min_columns: 6,
     });
+  });
+  it("opens the editor on the Home Assistant instance country", () => {
+    const root = document.createElement("home-assistant");
+    (root as unknown as { hass: unknown }).hass = { config: { country: "NZ" } };
+    document.body.appendChild(root);
+
+    try {
+      const form = AppleTvLauncherCard.getConfigForm() as {
+        schema: Array<{ schema?: Array<{ name: string; default?: unknown }> }>;
+      };
+      const field = form.schema
+        .flatMap((section) => section.schema ?? [])
+        .find((entry) => entry.name === "artwork_country");
+
+      expect(field?.default).toBe("nz");
+    } finally {
+      root.remove();
+    }
+  });
+
+  it("falls back to the built-in country when hass is unavailable", () => {
+    const form = AppleTvLauncherCard.getConfigForm() as {
+      schema: Array<{ schema?: Array<{ name: string; default?: unknown }> }>;
+    };
+    const field = form.schema
+      .flatMap((section) => section.schema ?? [])
+      .find((entry) => entry.name === "artwork_country");
+
+    expect(field?.default).toBe("us");
   });
 });

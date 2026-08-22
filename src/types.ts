@@ -11,6 +11,7 @@ export interface HassEntity {
 
 export interface HomeAssistant {
   states: Record<string, HassEntity>;
+  config?: { country?: string | null };
   callWS<T>(message: Record<string, unknown>): Promise<T>;
   callService(
     domain: string,

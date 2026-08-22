@@ -23,6 +23,21 @@ import type {
 } from "./types";
 
 export const CARD_TAG = "apple-tv-launcher-card";
+
+/**
+ * Storefront to open the editor on. Home Assistant records the instance country
+ * during onboarding, which beats defaulting every install to "us". Read from the
+ * root element because getConfigForm() is static and has no hass of its own.
+ */
+function editorDefaultCountry(): string {
+  const root = document.querySelector("home-assistant") as {
+    hass?: HomeAssistant;
+  } | null;
+  const country = root?.hass?.config?.country;
+  return typeof country === "string" && /^[A-Za-z]{2}$/.test(country)
+    ? country.toLowerCase()
+    : DEFAULTS.artwork_country;
+}
 export const CARD_VERSION = "0.1.0";
 
 const sleep = (milliseconds: number): Promise<void> =>
@@ -126,7 +141,7 @@ export class AppleTvLauncherCard extends LitElement {
             },
             {
               name: "artwork_country",
-              default: DEFAULTS.artwork_country,
+              default: editorDefaultCountry(),
               selector: { text: { type: "text" } },
             },
             {
