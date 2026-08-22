@@ -2,10 +2,10 @@
 
 ## Design
 
- - [ ] BRAND_STYLES fallbacks are too app specific, needs to have more generic fallback.
- - [ ] BUILTIN_ARTWORK needs work - needs better design for some icons, and support for other versions of Apple TV os Icon assets
- - [ ] Caching needs checking too
- - [ ] Need to support multiple Apple TVs
+- [ ] BRAND_STYLES fallbacks are too app specific, needs to have more generic fallback.
+- [ ] BUILTIN_ARTWORK needs work - needs better design for some icons, and support for other versions of Apple TV os Icon assets
+- [ ] Caching needs checking too
+- [ ] Need to support multiple Apple TVs
 
 ## Repository structure and publishing
 
