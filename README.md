@@ -19,7 +19,7 @@ this integration.
 - Launches an app after waking the Apple TV, with at most one bounded retry.
 - Provides a touch-first, keyboard-accessible grid and a visual card editor.
 - Supports 2–10 desktop columns and 2–6 mobile columns.
-- Resolves optional App Store artwork and persists validated Marketing Tools PNGs
+- Resolves optional App Store artwork and caches validated Marketing Tools PNGs
   under Home Assistant's `/config/www/apple-tv-launcher-artwork/` directory.
 - Remains fully usable with artwork lookup disabled by rendering deterministic
   local brand-color and initials tiles.
@@ -126,16 +126,16 @@ v0.1.0. Common settings are available in the visual editor.
 Artwork lookup is optional. When enabled, the browser sends each bundle ID to
 Apple's iTunes Lookup endpoint. Once a numeric App Store ID is found, the
 authenticated card asks the integration to download a PNG from Apple's Marketing
-Tools endpoint. The cache accepts only positive numeric IDs and two-letter
-storefronts, validates PNG responses, limits each file to 5 MB, limits the cache
-to 500 files, and writes atomically.
+Tools endpoint. Successful lookup metadata and validated PNGs are cached for 30
+days. The cache accepts only positive numeric IDs and two-letter storefronts,
+limits each file to 5 MB, and writes atomically. Failed lookups are not persisted,
+so temporary network errors recover automatically.
 
 Disable `artwork_lookup` for no automatic Apple network requests. User-supplied
 artwork URLs are still loaded because they are explicit configuration.
 
-Delete an individual PNG from
-`/config/www/apple-tv-launcher-artwork/` and reload the dashboard to deliberately
-refresh it.
+Delete an individual PNG from `/config/www/apple-tv-launcher-artwork/` and reload
+the dashboard to refresh it immediately.
 
 ## Apple TV support
 

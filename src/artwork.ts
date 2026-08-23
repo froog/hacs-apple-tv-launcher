@@ -24,6 +24,13 @@ interface ResolvedArtwork {
   trackId?: number;
 }
 
+interface StoredArtwork {
+  artwork: ResolvedArtwork;
+  expiresAt: number;
+}
+
+const ARTWORK_METADATA_MAX_AGE_MS = 30 * 24 * 60 * 60 * 1000;
+
 const BRAND_STYLES: Array<[RegExp, [string, string]]> = [
   [/netflix/i, ["#f7f5f0", "#d81f26"]],
   [/bbc|iplayer/i, ["#3f185f", "#ffffff"]],
@@ -72,8 +79,6 @@ const BUILTIN_ARTWORK: Record<string, BuiltinArtwork> = {
     unframed: false,
   },
 };
-
-const artworkMemoryCache = new Map<string, ResolvedArtwork | null>();
 
 export function brandStyle(name: string): [string, string] {
   const match = BRAND_STYLES.find(([pattern]) => pattern.test(name));
@@ -126,14 +131,18 @@ function inferredCountries(bundleId: string, preferred: string): string[] {
   return [...new Set([inferred, preferred, "us", "gb"])];
 }
 
-function validStoredArtwork(value: unknown): value is ResolvedArtwork {
+function validStoredArtwork(value: unknown): value is StoredArtwork {
   if (!value || typeof value !== "object") return false;
   const record = value as Record<string, unknown>;
+  const artwork = record.artwork as Record<string, unknown> | undefined;
+  if (!artwork) return false;
   return (
-    typeof record.primary === "string" &&
-    (record.fallback === null || typeof record.fallback === "string") &&
-    typeof record.unframed === "boolean" &&
-    (record.trackId === undefined || Number.isInteger(record.trackId))
+    typeof record.expiresAt === "number" &&
+    record.expiresAt > Date.now() &&
+    typeof artwork.primary === "string" &&
+    (artwork.fallback === null || typeof artwork.fallback === "string") &&
+    typeof artwork.unframed === "boolean" &&
+    (artwork.trackId === undefined || Number.isInteger(artwork.trackId))
   );
 }
 
@@ -143,28 +152,21 @@ async function lookupArtwork(
   hass: HomeAssistant,
 ): Promise<ResolvedArtwork | null> {
   const cacheKey = `${bundleId}|${country}`;
-  if (artworkMemoryCache.has(cacheKey)) {
-    return artworkMemoryCache.get(cacheKey) ?? null;
-  }
-
-  const storageKey = `apple-tv-launcher-artwork-v4:${cacheKey}`;
+  const storageKey = `apple-tv-launcher-artwork-v5:${cacheKey}`;
   try {
     const stored = window.localStorage.getItem(storageKey);
-    if (stored === "-") {
-      artworkMemoryCache.set(cacheKey, null);
-      return null;
-    }
     if (stored) {
       const parsed: unknown = JSON.parse(stored);
       if (validStoredArtwork(parsed)) {
-        if (parsed.trackId) {
-          parsed.primary =
-            (await cacheArtwork(hass, parsed.trackId, country)) ??
-            marketingArtworkUrl(parsed.trackId, country);
+        const artwork = parsed.artwork;
+        if (artwork.trackId) {
+          artwork.primary =
+            (await cacheArtwork(hass, artwork.trackId, country)) ??
+            marketingArtworkUrl(artwork.trackId, country);
         }
-        artworkMemoryCache.set(cacheKey, parsed);
-        return parsed;
+        return artwork;
       }
+      window.localStorage.removeItem(storageKey);
     }
   } catch {
     // Browser storage may be unavailable in strict privacy modes.
@@ -207,14 +209,18 @@ async function lookupArtwork(
     window.clearTimeout(timeout);
   }
 
-  artworkMemoryCache.set(cacheKey, result);
-  try {
-    window.localStorage.setItem(
-      storageKey,
-      result ? JSON.stringify(result) : "-",
-    );
-  } catch {
-    // Caching metadata is an optimization, not a requirement.
+  if (result) {
+    try {
+      window.localStorage.setItem(
+        storageKey,
+        JSON.stringify({
+          artwork: result,
+          expiresAt: Date.now() + ARTWORK_METADATA_MAX_AGE_MS,
+        } satisfies StoredArtwork),
+      );
+    } catch {
+      // Caching metadata is an optimization, not a requirement.
+    }
   }
   return result;
 }
@@ -270,8 +276,4 @@ export async function resolveArtwork(
     }
   }
   return app;
-}
-
-export function clearArtworkMemoryCache(): void {
-  artworkMemoryCache.clear();
 }

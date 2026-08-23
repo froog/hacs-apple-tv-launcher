@@ -3,13 +3,16 @@
 from __future__ import annotations
 
 import asyncio
+import os
 from pathlib import Path
 from unittest.mock import AsyncMock
 
 import pytest
 
-from custom_components.apple_tv_launcher import artwork_cache
-from custom_components.apple_tv_launcher.artwork_cache import ArtworkCache
+from custom_components.apple_tv_launcher.artwork_cache import (
+    ArtworkCache,
+    async_create_cache,
+)
 
 VALID_PNG = b"\x89PNG\r\n\x1a\n" + b"\x00\x00\x00\rIHDR" + b"\x00" * 8
 
@@ -20,6 +23,29 @@ class FakeHass:
     async def async_add_executor_job(self, target, *args):
         """Run an executor target inline for a focused unit test."""
         return target(*args)
+
+
+class FakeConfig:
+    """Resolve Home Assistant config-relative paths in a temporary directory."""
+
+    def __init__(self, directory: Path) -> None:
+        self.directory = directory
+
+    def path(self, *parts: str) -> str:
+        """Return a path beneath the temporary configuration directory."""
+        return str(self.directory.joinpath(*parts))
+
+
+@pytest.mark.asyncio
+async def test_create_cache_creates_artwork_directory(tmp_path: Path) -> None:
+    """Cache setup passes directory options through an executor callable."""
+    hass = FakeHass()
+    hass.config = FakeConfig(tmp_path)
+
+    cache = await async_create_cache(hass)
+
+    assert cache.directory == tmp_path / "www" / "apple-tv-launcher-artwork"
+    assert cache.directory.is_dir()
 
 
 @pytest.mark.asyncio
@@ -76,16 +102,23 @@ async def test_rejects_invalid_input(tmp_path: Path) -> None:
 
 
 @pytest.mark.asyncio
-async def test_enforces_file_limit(
+async def test_refreshes_stale_file(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """A full cache refuses another unique download."""
-    monkeypatch.setattr(artwork_cache, "MAX_CACHE_FILES", 1)
-    (tmp_path / "us-1.png").write_bytes(VALID_PNG)
+    """An expired image is replaced on the next request."""
+    target = tmp_path / "us-1.png"
+    target.write_bytes(VALID_PNG)
+    os.utime(target, (0, 0))
+    replacement = VALID_PNG + b"new"
+    download = AsyncMock(return_value=replacement)
+    monkeypatch.setattr(ArtworkCache, "_async_download", download)
     cache = ArtworkCache(FakeHass(), tmp_path)
 
-    with pytest.raises(RuntimeError, match="file limit"):
-        await cache.async_get(2, "us")
+    assert await cache.async_get(1, "us") == (
+        "/local/apple-tv-launcher-artwork/us-1.png"
+    )
+    assert target.read_bytes() == replacement
+    download.assert_awaited_once_with(1, "us")
 
 
 def test_png_validation() -> None:

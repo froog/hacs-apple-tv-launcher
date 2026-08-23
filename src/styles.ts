@@ -133,7 +133,8 @@ export const launcherStyles = css`
   .art.fallback-artwork,
   .placeholder {
     border: 1px solid rgba(255, 255, 255, 0.16);
-    border-radius: clamp(13px, 1.8vw, 21px);
+    border-radius: 22.37%;
+    corner-shape: squircle;
     background: var(--tile-bg, rgba(255, 255, 255, 0.07));
   }
   .app:hover .art,

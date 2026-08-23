@@ -13,4 +13,4 @@ CARD_URL: Final = f"{FRONTEND_URL_BASE}/{CARD_FILENAME}"
 COMMAND_CACHE_ARTWORK: Final = f"{DOMAIN}/cache_artwork"
 ARTWORK_DIRECTORY: Final = "apple-tv-launcher-artwork"
 MAX_ARTWORK_BYTES: Final = 5 * 1024 * 1024
-MAX_CACHE_FILES: Final = 500
+ARTWORK_MAX_AGE_SECONDS: Final = 30 * 24 * 60 * 60

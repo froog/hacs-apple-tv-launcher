@@ -4,9 +4,10 @@ from __future__ import annotations
 
 import asyncio
 import re
+import time
 from dataclasses import dataclass, field
+from functools import partial
 from pathlib import Path
-from weakref import WeakValueDictionary
 
 import aiohttp
 import voluptuous as vol
@@ -16,10 +17,10 @@ from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from .const import (
     ARTWORK_DIRECTORY,
+    ARTWORK_MAX_AGE_SECONDS,
     COMMAND_CACHE_ARTWORK,
     DOMAIN,
     MAX_ARTWORK_BYTES,
-    MAX_CACHE_FILES,
 )
 
 COUNTRY_PATTERN = re.compile(r"^[a-z]{2}$")
@@ -29,18 +30,14 @@ PNG_IHDR = b"IHDR"
 
 @dataclass(slots=True)
 class ArtworkCache:
-    """Download Marketing Tools artwork once and expose a local HA URL."""
+    """Cache Marketing Tools artwork and expose a local HA URL."""
 
     hass: HomeAssistant
     directory: Path
-    locks: WeakValueDictionary[str, asyncio.Lock] = field(
-        default_factory=WeakValueDictionary
-    )
-    reservations: set[str] = field(default_factory=set)
-    capacity_lock: asyncio.Lock = field(default_factory=asyncio.Lock)
+    locks: dict[str, asyncio.Lock] = field(default_factory=dict)
 
     async def async_get(self, track_id: int, country: str) -> str:
-        """Return a local URL, downloading the artwork atomically if missing."""
+        """Return a local URL, atomically downloading missing or stale artwork."""
         country = country.lower()
         if not COUNTRY_PATTERN.fullmatch(country):
             raise ValueError("country must be a two-letter storefront code")
@@ -49,31 +46,18 @@ class ArtworkCache:
 
         filename = f"{country}-{track_id}.png"
         target = self.directory / filename
-        if await self.hass.async_add_executor_job(self._has_content, target):
+        if await self.hass.async_add_executor_job(self._has_fresh_content, target):
             return self._local_url(filename)
 
         lock = self.locks.setdefault(filename, asyncio.Lock())
         async with lock:
-            if await self.hass.async_add_executor_job(self._has_content, target):
+            if await self.hass.async_add_executor_job(self._has_fresh_content, target):
                 return self._local_url(filename)
 
-            await self._async_reserve(filename)
-            try:
-                data = await self._async_download(track_id, country)
-                await self.hass.async_add_executor_job(self._atomic_write, target, data)
-            finally:
-                async with self.capacity_lock:
-                    self.reservations.discard(filename)
+            data = await self._async_download(track_id, country)
+            await self.hass.async_add_executor_job(self._atomic_write, target, data)
 
         return self._local_url(filename)
-
-    async def _async_reserve(self, filename: str) -> None:
-        """Reserve one cache slot without racing downloads for other files."""
-        async with self.capacity_lock:
-            file_count = await self.hass.async_add_executor_job(self._count_cache_files)
-            if file_count + len(self.reservations) >= MAX_CACHE_FILES:
-                raise RuntimeError("artwork cache file limit reached")
-            self.reservations.add(filename)
 
     async def _async_download(self, track_id: int, country: str) -> bytes:
         """Download one polished PNG from Apple's Marketing Tools service."""
@@ -117,10 +101,6 @@ class ArtworkCache:
             raise RuntimeError("invalid artwork PNG")
         return data
 
-    def _count_cache_files(self) -> int:
-        """Count complete cache entries outside Home Assistant's event loop."""
-        return sum(1 for path in self.directory.glob("*.png") if path.is_file())
-
     @staticmethod
     def _is_png(data: bytes) -> bool:
         """Perform a small structural check without adding an image dependency."""
@@ -131,9 +111,12 @@ class ArtworkCache:
         )
 
     @staticmethod
-    def _has_content(target: Path) -> bool:
-        """Check for a usable cache entry outside Home Assistant's event loop."""
-        if not target.is_file() or target.stat().st_size < 24:
+    def _has_fresh_content(target: Path) -> bool:
+        """Check for a fresh, usable cache entry outside the event loop."""
+        if not target.is_file():
+            return False
+        stat = target.stat()
+        if stat.st_size < 24 or time.time() - stat.st_mtime >= ARTWORK_MAX_AGE_SECONDS:
             return False
         with target.open("rb") as cached:
             header = cached.read(16)
@@ -157,7 +140,9 @@ class ArtworkCache:
 async def async_create_cache(hass: HomeAssistant) -> ArtworkCache:
     """Create the cache directory and cache service."""
     directory = Path(hass.config.path("www", ARTWORK_DIRECTORY))
-    await hass.async_add_executor_job(directory.mkdir, parents=True, exist_ok=True)
+    await hass.async_add_executor_job(
+        partial(directory.mkdir, parents=True, exist_ok=True)
+    )
     return ArtworkCache(hass, directory)
 
 
