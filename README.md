@@ -21,8 +21,8 @@ this integration.
 - Supports 2–10 desktop columns and 2–6 mobile columns.
 - Resolves optional App Store artwork and caches validated Marketing Tools PNGs
   under Home Assistant's `/config/www/apple-tv-launcher-artwork/` directory.
-- Remains fully usable with artwork lookup disabled by rendering deterministic
-  local brand-color and initials tiles.
+- Remains fully usable with artwork lookup disabled by rendering a local
+  gradient and initials tile.
 - Supports name/bundle-ID ordering, filtering, and custom artwork overrides.
 
 ## Requirements

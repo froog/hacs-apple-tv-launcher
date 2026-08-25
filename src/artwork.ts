@@ -31,24 +31,6 @@ interface StoredArtwork {
 
 const ARTWORK_METADATA_MAX_AGE_MS = 30 * 24 * 60 * 60 * 1000;
 
-const BRAND_STYLES: Array<[RegExp, [string, string]]> = [
-  [/netflix/i, ["#f7f5f0", "#d81f26"]],
-  [/bbc|iplayer/i, ["#3f185f", "#ffffff"]],
-  [/channel 4/i, ["#b8ff45", "#111111"]],
-  [/itvx/i, ["#ffe500", "#17248b"]],
-  [/tvnz/i, ["#1910a5", "#ffffff"]],
-  [/three|3now/i, ["#ef1738", "#ffffff"]],
-  [/prime/i, ["#0879df", "#ffffff"]],
-  [/disney/i, ["#082765", "#ffffff"]],
-  [/infuse/i, ["#6439df", "#ffffff"]],
-  [/purevpn/i, ["#6842e8", "#ffffff"]],
-  [/tubi/i, ["#6f48f5", "#ffffff"]],
-  [/channel 5/i, ["#224784", "#ffd92f"]],
-  [/music|sing/i, ["#f21d55", "#ffffff"]],
-  [/photos/i, ["#f5f5f2", "#313238"]],
-  [/settings/i, ["#a4a8a9", "#ffffff"]],
-];
-
 const BUILTIN_ARTWORK: Record<string, BuiltinArtwork> = {
   "com.apple.TVWatchList": { trackId: 1174078549 },
   "com.apple.TVMusic": { trackId: 1108187390 },
@@ -60,8 +42,6 @@ const BUILTIN_ARTWORK: Record<string, BuiltinArtwork> = {
     url: "https://developer.apple.com/assets/elements/icons/app-store/app-store-128x128_2x.png",
   },
   // Bundled 240x240 icons from tvOS 26.6, inlined by scripts/generate-icons.mjs.
-  // Previously these pointed at help.apple.com documentation crops, which were
-  // only 120x80/102x60 and unversioned against any tvOS release.
   "com.apple.TVSearch": {
     url: searchIcon,
     unframed: false,
@@ -79,17 +59,6 @@ const BUILTIN_ARTWORK: Record<string, BuiltinArtwork> = {
     unframed: false,
   },
 };
-
-export function brandStyle(name: string): [string, string] {
-  const match = BRAND_STYLES.find(([pattern]) => pattern.test(name));
-  if (match) return match[1];
-
-  let hash = 0;
-  for (const char of name) {
-    hash = ((hash << 5) - hash + char.charCodeAt(0)) | 0;
-  }
-  return [`hsl(${Math.abs(hash) % 360} 54% 39%)`, "#ffffff"];
-}
 
 export function marketingArtworkUrl(trackId: number, country: string): string {
   const query = new URLSearchParams({
@@ -242,10 +211,20 @@ export async function resolveArtwork(
     };
   }
 
+  const builtin = app.id ? BUILTIN_ARTWORK[app.id] : undefined;
+  if (builtin?.url?.startsWith("data:")) {
+    return {
+      ...app,
+      artwork: builtin.url,
+      artworkFallback: null,
+      artworkFit: builtin.fit ?? "cover",
+      unframedArtwork: builtin.unframed !== false,
+    };
+  }
+
   // This switch is also the privacy switch: no Apple request is made when off.
   if (!config.artwork_lookup) return app;
 
-  const builtin = app.id ? BUILTIN_ARTWORK[app.id] : undefined;
   if (builtin) {
     const remote = builtin.trackId
       ? marketingArtworkUrl(builtin.trackId, config.artwork_country)

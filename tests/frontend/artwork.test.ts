@@ -59,6 +59,24 @@ describe("artwork resolution", () => {
     expect(url.searchParams.get("sf")).toBe("nz");
   });
 
+  it("uses bundled artwork when remote lookup is disabled", async () => {
+    const fetchSpy = vi.spyOn(window, "fetch");
+    const config = normalizeConfig({
+      entity: "media_player.lounge",
+      artwork_lookup: false,
+    });
+
+    const result = await resolveArtwork(
+      { ...baseApp, id: "com.apple.TVSettings" },
+      config,
+      hass,
+    );
+
+    expect(result.artwork).toMatch(/^data:image\/png/);
+    expect(fetchSpy).not.toHaveBeenCalled();
+    expect(hass.callWS).not.toHaveBeenCalled();
+  });
+
   it("reuses successful lookup metadata until it expires", async () => {
     vi.mocked(hass.callWS).mockResolvedValue({ url: "/local/example.png" });
     const fetchSpy = vi.spyOn(window, "fetch").mockResolvedValue(

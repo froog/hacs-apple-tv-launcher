@@ -3,7 +3,7 @@ import { classMap } from "lit/directives/class-map.js";
 import { repeat } from "lit/directives/repeat.js";
 import { styleMap } from "lit/directives/style-map.js";
 
-import { brandStyle, resolveArtwork } from "./artwork";
+import { resolveArtwork } from "./artwork";
 import {
   DEFAULTS,
   initials,
@@ -23,6 +23,10 @@ import type {
 } from "./types";
 
 export const CARD_TAG = "apple-tv-launcher-card";
+const FALLBACK_ARTWORK = new URL(
+  /* @vite-ignore */ "./fallback.png",
+  import.meta.url,
+).href;
 
 /**
  * Storefront to open the editor on. Home Assistant records the instance country
@@ -485,7 +489,6 @@ export class AppleTvLauncherCard extends LitElement {
   }
 
   private _renderApp(app: LauncherApp, activeApp: string): TemplateResult {
-    const [background, foreground] = brandStyle(app.name);
     const active =
       activeApp.toLocaleLowerCase() === app.name.toLocaleLowerCase();
     const launching = this._launching === app.name;
@@ -506,8 +509,7 @@ export class AppleTvLauncherCard extends LitElement {
             "fallback-artwork": !app.unframedArtwork,
           })}
           style=${styleMap({
-            "--tile-bg": background,
-            "--tile-fg": foreground,
+            "--tile-bg": `url(${FALLBACK_ARTWORK}) center / cover no-repeat`,
           })}
         >
           <span class="fallback">${initials(app.name)}</span>

@@ -152,7 +152,7 @@ export const launcherStyles = css`
     border-color: rgba(255, 255, 255, 0.92);
   }
   .fallback {
-    color: var(--tile-fg);
+    color: #fff;
     font-size: clamp(19px, 3vw, 36px);
     font-weight: 760;
     letter-spacing: -0.045em;
